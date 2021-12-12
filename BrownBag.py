@@ -41,6 +41,7 @@ def getPersonInList(nodeList, name):
         if person.name == name:
             return person
 
+#as the method says, this transfers all the items in the file to be able to use in the code later following how BrownBag.txt looks
 def fileToCode(file, nameNodeList):
     f = open(file, "r")
     a = 0
