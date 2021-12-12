@@ -1,0 +1,44 @@
+Create an n-ary tree with a name as a root
+Names other than the root are children and have a boolean value (0 - false, 1 - true)
+Shuold output the names and update the BrownBag.txt file
+When the program is ran, randomly pairs up groups
+    Problems: How would I handle odd number of people
+                Maybe randomly choose a person to have a group of 3?
+              Also how would I handle duplicate names for different people
+                Name A is paired with Name B. Name C is paired with Name B also - how to check for this?
+
+When the code is ran, prints first name and partner (gets rid of partner from list theoretically)
+so it should technically be going through only half of the list of names 
+(if odd amount of people, person who hasnt been paired yet chooses out of their list of who they havent hung out with)
+
+
+How it should run:
+
+code opens file with names on each line
+
+then creates a list of names, each name has a list of names of every person that is not themselves
+
+to pair up, starts at the first name in the list and to test, orints another name that is not itself in the list 
+(set that index to null - keep list size, so if it hits a null item, nothing happens)
+checks to see if that person is not already taken
+
+after running, the BrownBag file should be modified to reflect the changes
+when ran again, it reads in the BrownBag file if its the same list of names
+
+#start pairing up
+print(nodeList[0].name, end = ": ")
+namePicked = random.choice(nodeList[0].nameList)
+print(namePicked)
+namePickedIndex = nodeList[0].nameList.index(namePicked)
+print(namePickedIndex)
+nodeList[0].hungOut(namePicked)
+print(nodeList[0].bool)
+
+
+to get the name of each person, do next(f) 3 times after printing name
+
+if(len(drawList)==2):
+        print(int(len(nodeList)/2), end = ": ")
+        print(drawList[0], end = ": ")
+        print(drawList[1], end = ": ")
+        break
