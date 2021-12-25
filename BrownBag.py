@@ -1,47 +1,31 @@
 import random
-class Node:
-    def __init__(self, name):
-        self.name = name
-        self.nameList = []
-        self.bool = []
-    
-    def addName(self, obj):
-        self.nameList.append(obj)
-        self.bool.append("0")
+import PersonNode
 
-    def setNameList(self,list):
-        self.nameList = list
-
-    def hungOutBefore(self,name):
-        i = self.nameList.index(name)
-        if self.bool[i] == 1:
-            return True
-        else:
-            return False
-
-    def hungOut(self,name):
-        i = self.nameList.index(name)
-        if(self.hungOutBefore(name)):
-            print("The pair has already hung out before")
-        else:
-            self.bool[i] = 1 #this means that the person has hung out with the person being inputted
-
-    def hungOut2(self,name1,name2):
-        i = self.nameList.index(name1)
-        j = self.nameList.index(name2)
-        if self.hungOutBefore(name1) and self.hungOutBefore(name2):
-            print("A pair has already hung out before")
-        else:
-            self.bool[i] = 1 #this means that the person has hung out with the person being inputted
-            self.bool[j] = 1
-
-def getPersonInList(nodeList, name):
-    #wrose
+def getPersonInNodeList(nodeList, name):
     for person in nodeList:
         if person.name == name:
             return person
 
-#as the method says, this transfers all the items in the file to be able to use in the code later following how BrownBag.txt looks
+def newNameList(fileName,nodeList):
+    f = open(fileName, "w")
+    #this writes each section into the file (each section is each object from list)
+    for x in nodeList:
+        f.write(x.name + "\n")
+        f.write(", ".join(x.nameList))
+        f.write("\n")
+        f.write(", ".join(x.bool))
+        f.write("\n\n")
+    f.close()
+
+def createDrawList(filename,drawList):
+    f = open(filename,"r")
+    file = f.readlines()
+    f.close()
+
+    for x in file:
+        drawList.append(x.strip("\n"))
+
+#as the method says, this transfers all the items in the file (specifically for the BrownBag file) to be able to use in the code later following how BrownBag.txt looks
 def fileToCode(file, nameNodeList):
     f = open(file, "r")
     a = 0
@@ -54,11 +38,11 @@ def fileToCode(file, nameNodeList):
             #this is to change the boolean list 
             boolList = next(f).strip("\n").split(", ")
             nameNodeList[a].bool = list(map(int, boolList))
-
             #skips empty line 
             next(f)
         a+=1
 
+#goes through the list of name nodes that contain the name, the name list and the boolean list and writes them into the text file
 def codeToFile(file, nameNodeList):
     f = open(file, "w")
     for x in nameNodeList:
@@ -69,80 +53,117 @@ def codeToFile(file, nameNodeList):
         f.write("\n\n")
     f.close()
 
+def printPairings(pairingList):
+    a = 0
+    for row in pairingList:
+        a += 1
+        print(a, end = ": ")
+        for col in row:
+            print(col.name, end = " ")
+        print()
+
+def returnPairing(pairingList):
+    pairings = ""
+    a = 0
+    for row in pairingList:
+        a += 1
+        pairings += str(a) + ": "
+        for col in row:
+            pairings += col.name + ", "
+        pairings = pairings[:-2]
+        pairings += "\n"
+    return pairings[:-1]
+
+#both persons need to go to node and their nameList to find name then set the index of bool = 1
+def pairUp():
+    a = 0
+    ranInt = random.randrange(1,int(len(drawList)/2))
+    while a < int(len(nodeList)/2):
+        a+=1
+        person1 = random.choice(drawList)
+        person1Node = getPersonInNodeList(nodeList, person1)
+        if person1 in drawList:
+            pairings.append([person1Node])
+            drawList.remove(person1)
+        
+        b = 0
+        #this randomly chooses a second person
+        while True:
+            person2 = random.choice(drawList)
+            person2Node = getPersonInNodeList(nodeList, person2)
+            if not person1Node.hungOutBefore(person2Node) and not person2Node.hungOutBefore(person1Node):
+                pairings[a-1].append(person2Node)
+                drawList.remove(person2)
+
+                #this chooses a third person for a random group as long as the amount of people is odd
+                #also the 3rd person goes into a random group
+                if a == ranInt and len(nodeList) % 2 == 1:
+                    while True:
+                        person3 = random.choice(drawList)
+                        person3Node = getPersonInNodeList(nodeList, person3)
+                        if not person1Node.hungOutBefore(person3Node) and not person3Node.hungOutBefore(person1Node) and not person2Node.hungOutBefore(person3Node) and not person3Node.hungOutBefore(person2Node):
+                            pairings[a-1].append(person3Node) 
+                            drawList.remove(person3)
+                            break
+                break
+
+            #prevents infinite looping problems (case where the remaining people have hung out with each other already)
+            #make remaining people pair up
+            b+=1
+            if b > len(drawList):
+                pairings[a-1].append(person2Node)
+                drawList.remove(person2)
+                break
+
+        if(len(drawList) <= 0):
+            break
+
+#-----------Variables--------------------
+pairings = []
 nodeList = list()
 drawList = list()
+#----------------------------------------
+
 f = open("namesList.txt","r")
-file = f.readlines()
+nameFile = f.readlines() #list of names from file
 f.close()
 
 #this adds the names from the name list file into a list for the code to go through
-for x in file:
-    name = Node(x.strip("\n"))
+for x in nameFile:
+    name = PersonNode.Person(x.strip("\n"))
     drawList.append(x.strip("\n"))
     nodeList.append(name)
 
 #once the names are added into the lists, the node list then has a list of the names other than themselves
 #also has a list of boolean values to determine if they have hung out with each other
+#This has a runtime of O(N^2) - goes through the len(nodeList) then len(nodeList)-1 -> O(N(N-1))
 for x in nodeList:
-        for y in file:
-            if y.strip("\n") != x.name.strip("\n"):
-                x.addName(y.strip("\n"))
+    for y in nameFile:
+        if y.strip("\n") != x.name.strip("\n"):
+            x.addName(y.strip("\n"))
 
-yn = input ("Is this the same list of names? \nThis modifies the BrownBag file and losing whatever list you had before if it's a new list (Y/N) ")
-if yn.lower() == "n":
-    f = open("BrownBag.txt", "w")
-    #this writes each section into the file (each section is each object from list)
-    for x in nodeList:
-        f.write(x.name + "\n")
-        f.write(", ".join(x.nameList))
-        f.write("\n")
-        f.write(", ".join(x.bool))
-        f.write("\n\n")
-    f.close()
-else:
-    fileToCode("BrownBag.txt", nodeList)
+if __name__ == "__main__":
 
-#both persons need to go to node and their nameList to find name then set the index of bool = 1
-#this pairs them up regardless of they hung out or not
-a = 0
-ranInt = random.randrange(1,int(len(drawList)/2))
-while a < int(len(nodeList)/2):
-    a += 1
-    person1 = random.choice(drawList)
-    person1Node = getPersonInList(nodeList, person1)
-    if person1 in drawList:
-        drawList.remove(person1)
+    yn = input ("Is this the same list of names? \nThis modifies the BrownBag file and losing whatever list you had before if it's a new list (Y/N) ")
+    if yn.lower() == "n":
+        #this writes each section into the file (each section is each object from list)
+        newNameList("BrownBag.txt",nodeList)
+    else:
+        fileToCode("BrownBag.txt", nodeList)
 
-    #this randomly chooses a second person
     while True:
-        person2 = random.choice(drawList)
-        person2Node = getPersonInList(nodeList, person2)
-        if not person1Node.hungOutBefore(person2) and not person2Node.hungOutBefore(person1):
-            drawList.remove(person2)
-            print(a, end = ": ")
-            print(person1Node.name, end = ": ")
-
-            #this chooses a third person for a random group as long as the amount of people is odd
-            if a == ranInt and len(nodeList) % 2 == 1:
-                print(person2, end =", ")
-                while True:
-                    person3 = random.choice(drawList)
-                    person3Node = getPersonInList(nodeList, person3)
-                    if not person1Node.hungOutBefore(person3) and not person2Node.hungOutBefore(person3) and not person3Node.hungOutBefore(person1) and not person3Node.hungOutBefore(person2):
-                        drawList.remove(person3)
-                        person1Node.hungOut(person3)
-                        person2Node.hungOut(person3)
-                        person3Node.hungOut2(person1,person2)
-                        break
-                print(person3)
-            else:
-                print(person2)
+        pairings = []
+        pairUp()
+        printPairings(pairings)
+        yn = input("Are these pairings fine? (Y/N) ")
+        if yn.lower() == "y":
+            for rowIndex in range(0, len(pairings)):
+                pairings[rowIndex][0].hungOut(pairings[rowIndex][1])
+                if len(pairings[rowIndex]) > 2:
+                    pairings[rowIndex][0].hungOut(pairings[rowIndex][2])
+                    pairings[rowIndex][1].hungOut(pairings[rowIndex][2])
+            codeToFile("BrownBag.txt", nodeList)
             break
-    
-    person1Node.hungOut(person2)
-    person2Node.hungOut(person1)
-    if(len(drawList) <= 0):
-        break
-
-#this code to file will always be at the end to modify the file
-codeToFile("BrownBag.txt", nodeList)
+        else:
+            createDrawList("namesList.txt",drawList)
+    #this code to file will always be at the end to modify the file
